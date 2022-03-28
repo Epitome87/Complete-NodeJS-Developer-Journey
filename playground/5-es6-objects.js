@@ -70,3 +70,13 @@ const transaction = (type, { label, price, ...theRest }) => {
 };
 
 transaction('order', product);
+
+// Avoid destructuring undefined objects (if they aren't passed in)
+const test = (type, { label, stock } = {}) => {
+  console.log(type, label, stock);
+};
+
+// Step further: set up default values for destructured props
+const anotherTest = (type, { label, stock = 0 } = {}) => {
+  console.log(type, label, stock);
+};
