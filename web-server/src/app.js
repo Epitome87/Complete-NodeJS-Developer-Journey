@@ -1,8 +1,25 @@
-const path = require('path');
-const express = require('express');
-const hbs = require('hbs');
+// const path = require('path');
+// const express = require('express');
+// const hbs = require('hbs');
+// const fetch = require('node-fetch');
+// require('dotenv').config();
+
+// const geocode = require('./utils/geocode');
+// const forecast = require('./utils/forecast');
+import geocode from './utils/geocode.js';
+import forecast from './utils/forecast.js';
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+import express from 'express';
+import hbs from 'hbs';
+import fetch from 'node-fetch';
+// import 'dotenv/config';
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Figure out our public directory path, using the path module system function
 const publicDirectoryPath = path.join(__dirname, '../public');
@@ -45,10 +62,61 @@ app.get('/help', (req, res) => {
 // Can also send back JSON!
 app.get('/weather', (req, res) => {
   // Express automatically detects we're sending an object, stringifies the JSON for us!
-  res.send([
-    { forecast: 'It is snowing', location: 'Redlands' },
-    { forecast: 'It is raining', location: 'Riverside' },
-  ]);
+  const { address } = req.query;
+
+  if (!address) {
+    return res.send({
+      error: 'Must provide an address',
+    });
+  }
+
+  geocode(address, (error, { latitude, longitude, location } = {}) => {
+    if (error) {
+      return res.send({ error });
+    }
+
+    forecast(latitude, longitude, (forecastError, forecastData) => {
+      if (forecastError) {
+        return res.send({ error });
+      }
+
+      return res.send({ forecast: forecastData, address, location });
+    });
+  });
+});
+
+app.get('/products/:id', (req, res) => {
+  const { id } = req.params;
+
+  console.log('ID', id);
+  console.log('Query', req.query);
+
+  if (!req.query.search) {
+    return res.send({
+      error: 'Must provide a search term',
+    });
+  }
+
+  res.send({
+    products: [],
+  });
+});
+
+app.get('/help/*', (req, res) => {
+  res.render('404', {
+    title: '404',
+    name: 'Matthew',
+    errorMessage: 'Help article not found',
+  });
+});
+
+// Unhandled routes -- needs to come last
+app.get('*', (req, res) => {
+  res.render('404', {
+    title: '404',
+    name: 'Matthew',
+    errorMessage: 'Page Not Found',
+  });
 });
 
 const PORT = 5000;

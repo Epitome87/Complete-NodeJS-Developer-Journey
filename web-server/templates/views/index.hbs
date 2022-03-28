@@ -3,16 +3,27 @@
     <meta charset='UTF-8' />
     <meta http-equiv='X-UA-Compatible' content='IE=edge' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    {{!-- <link rel="icon" href="/img/weather.png"> --}}
     <!-- This path is relative to our current location and its absolute start is our public directory -->
     <link rel='stylesheet' href='./css/styles.css' />
-    <script src='./js/app.js'></script>
     <title>{{title}}</title>
   </head>
   <body>
-    {{>header}}
-    <p>This is now a dynamic handlebars file!</p>
-    <p>Welcome, {{name}}</p>
-    <img src='./img/me.jpg' alt='Me' />
+    <div class="main-content">
+      {{>header}}
+      <p>Welcome, {{name}}</p>
+
+
+      <form>
+        <input type="text" name="location" placeholder="Location">
+        <button>Search</button>
+      </form>
+
+      <p id="message-one"></p>
+      <p id="message-two"></p>
+    </div>
     {{>footer}}
+
+    <script src='./js/app.js'></script>
   </body>
 </html>
