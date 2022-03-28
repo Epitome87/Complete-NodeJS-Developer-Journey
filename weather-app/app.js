@@ -1,22 +1,36 @@
-// const fetch = require('node-fetch');
-import fetch from 'node-fetch';
-import 'dotenv/config';
+import _yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import geocode from './utils/geocode.js';
+import forecast from './utils/forecast.js';
 
-const apiKey = process.env.WEATHERSTACK_KEY;
-const units = 'f';
-const longitudeLatitude = '37.8267,-122.4233';
-const baseUrl = 'http://api.weatherstack.com/current';
-const url = `${baseUrl}?access_key=${apiKey}&units=${units}&query=${longitudeLatitude}`;
+const yargs = _yargs(hideBin(process.argv));
 
-// fetch(baseURL)
-//   .then((response) => response.json())
-//   .then((data) => console.log(data.current));
+yargs.command({
+  command: 'forecast',
+  describe: 'Get weather forecast',
+  builder: {
+    location: {
+      describe: 'The Location to get the weather forecast of',
+      demandOption: true,
+      type: 'string',
+    },
+  },
+  handler(yargs) {
+    // Prevent destructuring of "undefined" by giving the destructure a default value of an empty object
+    geocode(yargs.location, (error, { latitude, longitude, location } = {}) => {
+      if (error) {
+        return console.log('Error', error);
+      }
 
-const response = await fetch(url);
-const weather = await response.json();
+      forecast(latitude, longitude, (error, forecastData) => {
+        if (error) {
+          return console.log('Error', error);
+        }
+        console.log(location);
+        console.log(forecastData);
+      });
+    });
+  },
+});
 
-console.log(weather);
-
-console.log(
-  `${weather.current.weather_descriptions[0]}. It is current ${weather.current.temperature} degrees out. It feels like ${weather.current.feelslike} degrees out.`
-);
+yargs.parse();
