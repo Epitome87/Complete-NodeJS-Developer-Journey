@@ -2,8 +2,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const auth = async (req, res, next) => {
-  console.log('Auth Middleware');
-
   try {
     //   Get the value of the token from the Authorization Header
     const token = req.header('Authorization');
@@ -12,7 +10,7 @@ const auth = async (req, res, next) => {
     // Trim out the 'Bearer ' part of the token
     const parsedToken = token.replace('Bearer ', '');
 
-    const decoded = jwt.verify(parsedToken, 'thisisasecret');
+    const decoded = jwt.verify(parsedToken, process.env.JWT_SECRET);
 
     // Remember, our Token's payload stores our user ID
     // Is this Token part of our User's Tokens array?
@@ -35,7 +33,7 @@ const auth = async (req, res, next) => {
     // Give routes access to user in the req
     req.user = user;
     req.token = token;
-    console.log("User auth'd! user and token", req.user, req.token);
+
     next();
   } catch (error) {
     res.status(401).send({ error: 'Please authenticate' });

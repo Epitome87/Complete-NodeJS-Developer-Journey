@@ -45,8 +45,7 @@ const getTasks = async (req, res) => {
 // Get a Task by its ID
 const getTask = async (req, res) => {
   const { id } = req.params;
-  console.log('Get Task');
-
+ 
   try {
     // Task must match Task ID and be owned by this user
     // const task = await Task.findById(id);
@@ -100,8 +99,6 @@ const deleteTask = async (req, res) => {
 
 // Update a Task by its ID
 const updateTask = async (req, res) => {
-  console.log('HUH');
-
   const { id } = req.params;
 
   const updates = Object.keys(req.body);

@@ -70,7 +70,7 @@ userSchema.virtual('tasks', {
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
 
-  const token = jwt.sign({ _id: user._id.toString() }, 'thisisasecret');
+  const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
 
   user.tokens = user.tokens.concat({ token });
   await user.save();
@@ -110,7 +110,6 @@ userSchema.statics.findByCredentials = async (email, password) => {
 
   // No User with this email found
   if (!user) {
-    console.log('User by that email not found');
     throw new Error('Unable to login');
   }
 
@@ -118,12 +117,10 @@ userSchema.statics.findByCredentials = async (email, password) => {
 
   // Password incorrect
   if (!isMatch) {
-    console.log('User by that email found, but password incorrect');
     throw new Error('Unable to login');
   }
 
   // Note we intentionally use vague login errors -- for protection reasons
-  console.log('User with that email/password found');
   return user;
 };
 
@@ -131,8 +128,6 @@ userSchema.statics.findByCredentials = async (email, password) => {
 userSchema.pre('save', async function (next) {
   // This is the individual User we are about to save
   const user = this;
-
-  console.log('Just before saving');
 
   if (user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 8);
