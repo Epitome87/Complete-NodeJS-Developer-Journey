@@ -1,13 +1,41 @@
 const Task = require('../models/task');
 
 // Get all Tasks
+// GET /tasks?completed=false
+// GET /tasks?limit=10&skip=20
+// GET /tasks?sortBy=createdAt:asc
 const getTasks = async (req, res) => {
   try {
-    console.log('FETCHING TASKS FOR USER', req.user);
     // const tasks = await Task.find({});
     // Can also do this:
     // Note, if we were to grab the value returned by this populate call, it is NOT the tasks array -- it's the full User object, without a .task field
-    await req.user.populate('tasks');
+    // await req.user.populate('tasks');
+    const match = {};
+    const sort = {};
+
+    if (req.query.isCompleted) {
+      // Our query is a string -- convert it to a boolean
+      match.isCompleted = req.query.isCompleted === 'true';
+    }
+
+    if (req.query.sortBy) {
+      const sortString = req.query.sortBy.split(':');
+      const sortCategory = sortString[0];
+      const sortType = sortString[1];
+
+      sort[sortCategory] = sortType === 'desc' ? -1 : 1;
+    }
+
+    await req.user.populate({
+      path: 'tasks',
+      match: match,
+      options: {
+        // If limit wasn't provided or its NAN, Mongoose ignores it
+        limit: parseInt(req.query.limit),
+        skip: parseInt(req.query.skip),
+        sort: sort,
+      },
+    });
     res.status(200).send(req.user.tasks);
   } catch (error) {
     res.status(500).send(error);
