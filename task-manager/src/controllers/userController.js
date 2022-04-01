@@ -1,5 +1,9 @@
 const User = require('../models/user');
 const sharp = require('sharp');
+const {
+  sendCancellationEmail,
+  sendWelcomeEmail,
+} = require('../emails/account.js');
 
 const getAvatar = async (req, res) => {
   try {
@@ -52,7 +56,8 @@ const createUser = async (req, res) => {
 
   try {
     await newUser.save();
-    console.log('HUH', newUser);
+
+    sendWelcomeEmail(newUser.email, newUser.name);
 
     // Generate Auth Token for this user
     const token = await newUser.generateAuthToken();
@@ -73,6 +78,8 @@ const deleteUser = async (req, res) => {
 
     // Simpler way to remove a Document from a Collection
     await req.user.remove();
+
+    sendCancellationEmail(req.user.email, req.user.name);
 
     res.status(200).send(req.user);
   } catch (error) {
@@ -118,13 +125,10 @@ const updateUser = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  console.log('LOGGING IN?!');
   const { email, password } = req.body;
 
   try {
     const user = await User.findByCredentials(email, password);
-    console.log('USER???', user);
-
     const token = await user.generateAuthToken();
 
     // return res.status(200).send(user);
