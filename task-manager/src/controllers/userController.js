@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const sharp = require('sharp');
 
 const getAvatar = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ const getAvatar = async (req, res) => {
     // Set response headers
     // We haven't had to set this before because Express is fairly smart when it comes to doing it automatically!
     // For instance, it's been setting Content-Type to 'application/json' when we send bock objects
-    res.set('Content-Type', 'image/jpg');
+    res.set('Content-Type', 'image/png');
     res.send(user.avatar);
   } catch (error) {
     res.status(404).send();
@@ -27,7 +28,13 @@ const deleteAvatar = async (req, res) => {
 
 const uploadAvatar = async (req, res) => {
   // Multer middleware gives us access to the file data on req.file!
-  req.user.avatar = req.file.buffer;
+  // req.user.avatar = req.file.buffer;
+  // Instead, let's make use of the sharp library!
+  const buffer = await sharp(req.file.buffer)
+    .resize({ width: 250, height: 250 })
+    .png()
+    .toBuffer(); // Pass the original file data, png it, resize it, and convert back to a buffer
+  req.user.avatar = buffer;
 
   // Save profile since we just made a change
   await req.user.save();
