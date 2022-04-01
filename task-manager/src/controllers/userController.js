@@ -1,18 +1,41 @@
 const User = require('../models/user');
 
-// Now that we enforce Auth, this controller is rather useless
-// const getUsers = async (req, res) => {
-//   try {
-//     const users = await User.find({});
-//     res.status(200).send(users);
-//   } catch (error) {
-//     res.status(500).send(error);
-//   }
-// };
+const getAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user || !user.avatar) {
+      throw new Error();
+    }
+
+    // Set response headers
+    // We haven't had to set this before because Express is fairly smart when it comes to doing it automatically!
+    // For instance, it's been setting Content-Type to 'application/json' when we send bock objects
+    res.set('Content-Type', 'image/jpg');
+    res.send(user.avatar);
+  } catch (error) {
+    res.status(404).send();
+  }
+};
+
+const deleteAvatar = async (req, res) => {
+  req.user.avatar = undefined;
+
+  await res.user.save();
+  res.status(200).send('Avatar successfully deleted');
+};
+
+const uploadAvatar = async (req, res) => {
+  // Multer middleware gives us access to the file data on req.file!
+  req.user.avatar = req.file.buffer;
+
+  // Save profile since we just made a change
+  await req.user.save();
+  res.status(200).send('Avatar uploaded successfully');
+};
 
 const getUser = async (req, res) => {
   // Now that we use Auth middleware first, we already ahve access to user!
-  console.log('USER IN GET USER', req.user);
   res.send(req.user);
 };
 
@@ -26,7 +49,6 @@ const createUser = async (req, res) => {
 
     // Generate Auth Token for this user
     const token = await newUser.generateAuthToken();
-    // TODO: Why is user an empty object? It isn't until we send it
     res.status(201).send({ user: newUser, token });
   } catch (error) {
     res.status(400).send(error);
@@ -140,4 +162,7 @@ module.exports = {
   login,
   logout,
   logoutAll,
+  getAvatar,
+  deleteAvatar,
+  uploadAvatar,
 };
