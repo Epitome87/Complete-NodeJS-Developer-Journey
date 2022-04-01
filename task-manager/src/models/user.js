@@ -98,6 +98,9 @@ userSchema.methods.toJSON = function () {
   delete userObject.password;
   delete userObject.tokens;
 
+  // We also don't want that large, ugly Buffer of Avatar image data!
+  delete userObject.avatar;
+
   return userObject;
 };
 
